@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8demo-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: k8demo-db-sc
+  resources:
+    requests:
+      storage: 1Gi

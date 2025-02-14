@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Name App</title>
+</head>
+<body>
+    <h1>Name App</h1>
+
+    <div>
+        <label for="newName">Enter a new name:</label>
+        <input type="text" id="newName">
+        <button onclick="addName()">Add Name</button>
+    </div>
+
+    <div>
+        <h2>Existing Names</h2>
+        <ul id="nameList"></ul>
+    </div>
+
+    <script>
+        const backendURL = 'http://roomscout.online/api'; // Replace with your Spring Boot app's URL
+
+        function addName() {
+            const newName = document.getElementById('newName').value;
+            fetch(backendURL + '/names?name=' + newName, { method: 'POST' })
+              .then(() => {
+                    document.getElementById('newName').value = '';
+                    getNames();
+                })
+              .catch(error => console.error('Error adding name:', error));
+        }
+
+        function getNames() {
+            fetch(backendURL + '/names')
+              .then(response => response.json())
+              .then(names => {
+                    const nameList = document.getElementById('nameList');
+                    nameList.innerHTML = '';
+                    names.forEach(name => {
+                        const li = document.createElement('li');
+                        li.textContent = name.name;
+                        nameList.appendChild(li);
+                    });
+                })
+              .catch(error => console.error('Error fetching names:', error));
+        }
+
+        // Fetch names on page load
+        getNames();
+    </script>
+</body>
+</html>
