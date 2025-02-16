@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8demo-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8demo-db
+  template:
+    metadata:
+      labels:
+        app: k8demo-db
+    spec:
+      containers:
+      - name: k8demo-db
+        image: mysql:latest
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "2327Ji01041312*$"
+        - name: MYSQL_DATABASE
+          value: "u889228275_Kubernetes"
+        - name: MYSQL_USER
+          value: "u889228275_admin2"
+        - name: MYSQL_PASSWORD
+          value: "2327Ji01041312*$"
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: k8demo-db-data
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: k8demo-db-data
+        persistentVolumeClaim:
+          claimName: k8demo-db-pvc
