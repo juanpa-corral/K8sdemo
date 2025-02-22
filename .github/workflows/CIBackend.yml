@@ -1,97 +1,94 @@
 name: Backend CI/CD
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "kubernetesK8s/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "kubernetesK8s/**"
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+  build-and-push:
+    runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-      - name: Build backend with Gradle
-        working-directory: kubernetesK8s
-        run: |
-          chmod +x ./gradlew
-          ./gradlew build
+      - name: Build backend with Gradle
+        working-directory: kubernetesK8s
+        run: |
+          chmod +x ./gradlew
+          ./gradlew build
 
-      - name: Log in to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build and push Docker image
-        run: |
-          IMAGE_NAME=docker.io/${{ secrets.DOCKER_USERNAME }}/backend:latest
-          docker build -t $IMAGE_NAME kubernetesK8s
-          docker push $IMAGE_NAME
+      - name: Build and push Docker image
+        run: |
+          IMAGE_NAME=docker.io/${{ secrets.DOCKER_USERNAME }}/backend:latest
+          docker build -t $IMAGE_NAME kubernetesK8s
+          docker push $IMAGE_NAME
 
-      # 🔹 Habilitar OCI en Helm
-      - name: Enable OCI support in Helm
-        run: echo "HELM_EXPERIMENTAL_OCI=1" >> $GITHUB_ENV
+      # 🔹 Habilitar OCI en Helm
+      - name: Enable OCI support in Helm
+        run: echo "HELM_EXPERIMENTAL_OCI=1" >> $GITHUB_ENV
 
-      # 🔹 Clonar el repositorio de Helm Charts (`k8sdemoManifiest`)
-      - name: Clone Helm Chart Repository
-        run: |
-          git clone https://github.com/juanpa-corral/k8sdemoManifiest.git
-          cd k8sdemoManifiest
-          git pull origin master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 🔹 Clonar el repositorio de Helm Charts (`k8sdemoManifiest`)
+      - name: Clone Helm Chart Repository
+        run: |
+          git clone https://github.com/juanpa-corral/k8sdemoManifiest.git
+          cd k8sdemoManifiest
+          git pull origin master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 🔹 Empaquetar el Chart
-      - name: Package Helm Chart
-        run: |
-          cd k8sdemoManifiest/backend-chart
-          helm package . --destination ../
-          cd ..
-          ls -l
+      # 🔹 Empaquetar el Chart
+      - name: Package Helm Chart
+        run: |
+          cd k8sdemoManifiest/backend-chart
+          helm package . --destination ../
+          cd ..
+          ls -l
 
-      # 🔹 Verificar que el .tgz se generó
-      - name: Verify Helm Chart before push
-        run: ls -l k8sdemoManifiest/
+      # 🔹 Verificar que el .tgz se generó
+      - name: Verify Helm Chart before push
+        run: ls -l k8sdemoManifiest/
 
-      # ✅ Autenticarse en Nexus con `helm registry login`
+      # ✅ Autenticarse en Nexus con `helm registry login`
       - name: Log in to Nexus Helm Repository
         run: |
-          echo "${{ secrets.NEXUS_PASSWORD }}" | HELM_INSECURE_SKIP_TLS_VERIFY=1 helm registry login http://209.38.170.117:8081 --username=${{ secrets.NEXUS_USERNAME }} --password-stdin
+          helm registry login 209.38.170.117:8081 \
+            --username=${{ secrets.NEXUS_USERNAME }} \
+            --password=${{ secrets.NEXUS_PASSWORD }} \
+            --insecure-skip-tls-verify
 
-      # ✅ Subir el Chart a Nexus usando OCI
-      - name: Push Helm Chart to Nexus
-        run: |
-          helm push k8sdemoManifiest/backend-chart-0.1.0.tgz oci://http://209.38.170.117:8081/repository/helm-charts/
 
-      # 🔹 Actualizar el index.yaml en el repo `k8sdemoManifiest`
-      - name: Update k8sdemoManifiest repo
-        run: |
-          cd k8sdemoManifiest/backend-chart
-
-          # Actualizar versión en `Chart.yaml`
-          sed -i 's/version: .*/version: 0.1.0/' Chart.yaml
-
-          cd ..
-
-          # Agregar cambios y hacer commit
-          git add backend-chart-0.1.0.tgz backend-chart/Chart.yaml
-
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "github-actions"
-          git commit -m "Update Helm Chart version to 0.1.0"
-          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/juanpa-corral/k8sdemoManifiest.git
-
-      # 🔹 Añadiendo pasos de diagnostico.
-      - name: Check Helm Version
-        run: helm version
-
-      - name: Check Nexus Connection
-        run: curl -v http://209.38.170.117:8081/v2/
+      # ✅ Subir el Chart a Nexus usando OCI
+      - name: Push Helm Chart to Nexus
+        run: |
+          helm push k8sdemoManifiest/backend-chart-0.1.0.tgz oci://http://209.38.170.117:8081/repository/helm-charts/
+      
+      # 🔹 Actualizar el index.yaml en el repo `k8sdemoManifiest`
+      - name: Update k8sdemoManifiest repo
+        run: |
+          cd k8sdemoManifiest/backend-chart
+          
+          # Actualizar versión en `Chart.yaml`
+          sed -i 's/version: .*/version: 0.1.0/' Chart.yaml
+          
+          cd ..
+          
+          # Agregar cambios y hacer commit
+          git add backend-chart-0.1.0.tgz backend-chart/Chart.yaml
+          
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions"
+          git commit -m "Update Helm Chart version to 0.1.0"
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/juanpa-corral/k8sdemoManifiest.git
