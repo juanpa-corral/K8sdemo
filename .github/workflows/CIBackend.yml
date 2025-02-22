@@ -62,9 +62,10 @@ jobs:
         run: ls -l k8sdemoManifiest/
 
       # ✅ Autenticarse en Nexus con `helm registry login`
-      - name: Login to Nexus Repository
+      - name: Log in to Nexus Helm Repository
         run: |
-          helm registry login 209.38.170.117:8081 --username=${{ secrets.NEXUS_USERNAME }} --password=${{ secrets.NEXUS_PASSWORD }}
+          echo "${{ secrets.NEXUS_PASSWORD }}" | HELM_INSECURE_SKIP_TLS_VERIFY=1 helm registry login 209.38.170.117:8081 --username=${{ secrets.NEXUS_USERNAME }} --password-stdin
+
 
       # ✅ Subir el Chart a Nexus usando OCI
       - name: Push Helm Chart to Nexus
