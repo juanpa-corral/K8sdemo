@@ -72,4 +72,4 @@ jobs:
           git config --global user.name "github-actions"
           git add .
           git commit -m "Update Helm Chart version to 0.1.0"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/juanpa-corral/k8sdemoManifiest.git
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/juanpa-corral/k8sdemoManifiest.git
