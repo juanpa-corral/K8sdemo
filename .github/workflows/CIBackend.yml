@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "kubernetesK8s/**"  # Se activa cuando hay cambios en el backend
+      - "kubernetesK8s/**"
 
 jobs:
   build-and-push:
@@ -36,48 +36,53 @@ jobs:
           docker build -t $IMAGE_NAME kubernetesK8s
           docker push $IMAGE_NAME
 
-      - name: Install Helm push plugin
-        run: helm plugin install https://github.com/chartmuseum/helm-push.git
+      # 🔹 Habilitar OCI en Helm
+      - name: Enable OCI support in Helm
+        run: echo "HELM_EXPERIMENTAL_OCI=1" >> $GITHUB_ENV
 
-      # 🔹 Clonar el repositorio de manifiestos (`k8sdemoManifiest`)
+      # 🔹 Clonar el repositorio de Helm Charts (`k8sdemoManifiest`)
       - name: Clone Helm Chart Repository
         run: |
           git clone https://github.com/juanpa-corral/k8sdemoManifiest.git
           cd k8sdemoManifiest
-          git pull origin master  # Asegura que tienes la última versión
+          git pull origin master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 🔹 Empaquetar el Chart desde el repositorio clonado
+      # 🔹 Empaquetar el Chart
       - name: Package Helm Chart
         run: |
           cd k8sdemoManifiest/backend-chart
           helm package . --destination ../
           cd ..
-          ls -l  # Verifica si el archivo .tgz realmente está aquí
+          ls -l
 
-      # 🔹 Verificar si el archivo .tgz se generó antes del push
+      # 🔹 Verificar que el .tgz se generó
       - name: Verify Helm Chart before push
         run: ls -l k8sdemoManifiest/
 
-      # ✅ Subir el Chart a Nexus usando ChartMuseum
+      # ✅ Autenticarse en Nexus con `helm registry login`
+      - name: Login to Nexus Repository
+        run: |
+          helm registry login 209.38.170.117:8081 --username=${{ secrets.NEXUS_USERNAME }} --password=${{ secrets.NEXUS_PASSWORD }}
+
+      # ✅ Subir el Chart a Nexus usando OCI
       - name: Push Helm Chart to Nexus
         run: |
-          helm repo add my-nexus http://209.38.170.117:8081/repository/helm-charts/
-          helm push k8sdemoManifiest/backend-chart-0.1.0.tgz my-nexus --username=${{ secrets.NEXUS_USERNAME }} --password=${{ secrets.NEXUS_PASSWORD }}
-
-      # 🔹 Actualizar el index.yaml con la nueva versión y subir los cambios
+          helm push k8sdemoManifiest/backend-chart-0.1.0.tgz oci://209.38.170.117:8081/repository/helm-charts/
+      
+      # 🔹 Actualizar el index.yaml en el repo `k8sdemoManifiest`
       - name: Update k8sdemoManifiest repo
         run: |
           cd k8sdemoManifiest/backend-chart
           
-          # Actualizar la versión del chart en `Chart.yaml`
+          # Actualizar versión en `Chart.yaml`
           sed -i 's/version: .*/version: 0.1.0/' Chart.yaml
           
           cd ..
           
-          # Agregar el nuevo archivo .tgz al commit
-          git add backend-chart-0.1.0.tgz backend-chart/Chart.yaml backend-chart/index.yaml
+          # Agregar cambios y hacer commit
+          git add backend-chart-0.1.0.tgz backend-chart/Chart.yaml
           
           git config --global user.email "github-actions@github.com"
           git config --global user.name "github-actions"
