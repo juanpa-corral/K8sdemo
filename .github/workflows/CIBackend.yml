@@ -64,7 +64,7 @@ jobs:
       - name: Push Helm Chart to Nexus
         run: |
           helm repo add my-nexus http://209.38.170.117:8081/repository/helm-charts/
-          helm cm-push k8sdemoManifiest/backend-chart-0.1.0.tgz my-nexus --username=${{ secrets.NEXUS_USERNAME }} --password=${{ secrets.NEXUS_PASSWORD }}
+          helm push k8sdemoManifiest/backend-chart-0.1.0.tgz my-nexus --username=${{ secrets.NEXUS_USERNAME }} --password=${{ secrets.NEXUS_PASSWORD }}
 
       # 🔹 Actualizar el index.yaml con la nueva versión y subir los cambios
       - name: Update k8sdemoManifiest repo
