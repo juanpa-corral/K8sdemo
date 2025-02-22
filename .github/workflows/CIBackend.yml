@@ -44,7 +44,7 @@ jobs:
         run: |
           git clone https://github.com/juanpa-corral/k8sdemoManifiest.git
           cd k8sdemoManifiest
-          git pull origin main  # Asegura que tienes la última versión
+          git pull origin master  # Asegura que tienes la última versión
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
