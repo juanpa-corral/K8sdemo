@@ -62,7 +62,7 @@ jobs:
         run: |
           export HELM_REGISTRY_USER="${{ secrets.NEXUS_USERNAME }}"
           export HELM_REGISTRY_PASSWORD="${{ secrets.NEXUS_PASSWORD }}"
-          helm push k8sdemoManifiest/backend-chart-0.1.0.tgz oci://http://209.38.170.117:8081/repository/helm-charts/backend-chart:0.1.0
+          helm push --debug k8sdemoManifiest/backend-chart-0.1.0.tgz oci://http://209.38.170.117:8081/repository/helm-charts/backend-chart:latest
 
       - name: Update k8sdemoManifiest repo
         run: |
