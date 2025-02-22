@@ -39,11 +39,37 @@ jobs:
       - name: Install Helm push plugin
         run: helm plugin install https://github.com/chartmuseum/helm-push.git
 
+      # 🔹 Clonar el repositorio de manifiestos (`k8sdemoManifiest`)
+      - name: Clone Helm Chart Repository
+        run: |
+          git clone https://github.com/juanpa-corral/k8sdemoManifiest.git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Necesario si el repo es privado
+
+      # 🔹 Empaquetar el Chart desde el repositorio clonado
       - name: Package Helm Chart
         run: |
-          helm package helm/backend-chart
+          cd k8sdemoManifiest/backend-chart
+          helm package . --destination ../
+          cd ..
 
+      # 🔹 Subir el Chart a Nexus
       - name: Push Helm Chart to Nexus
         run: |
           helm repo add my-nexus http://209.38.170.117:8081/repository/helm-charts/
           helm push backend-chart-0.1.0.tgz my-nexus --username=${{ secrets.NEXUS_USERNAME }} --password=${{ secrets.NEXUS_PASSWORD }}
+
+      # 🔹 Actualizar el index.yaml con la nueva versión
+      - name: Update k8sdemoManifiest repo
+        run: |
+          cd k8sdemoManifiest/backend-chart
+          
+          # Actualizar la versión del chart en el `index.yaml`
+          sed -i 's/version: .*/version: 0.1.0/' Chart.yaml
+          
+          # Commit y push al repositorio de manifiestos
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions"
+          git add .
+          git commit -m "Update Helm Chart version to 0.1.0"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/juanpa-corral/k8sdemoManifiest.git
