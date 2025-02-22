@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "kubernetesK8s/**"  # Se activa cuando hay cambios en el backend
+      - "backend/**"  # Se activa cuando hay cambios en el backend
 
 jobs:
   build-and-push:
@@ -22,9 +22,9 @@ jobs:
           java-version: '17'
 
       - name: Build backend with Gradle
-        working-directory: kubernetesK8s
+        working-directory: backend
         run: |
-          chmod +x ./gradlew  # Asegura permisos de ejecución
+          chmod +x ./gradlew
           ./gradlew build
 
       - name: Log in to Docker Hub
@@ -33,10 +33,17 @@ jobs:
       - name: Build and push Docker image
         run: |
           IMAGE_NAME=docker.io/${{ secrets.DOCKER_USERNAME }}/backend:latest
-          docker build -t $IMAGE_NAME kubernetesK8s
+          docker build -t $IMAGE_NAME backend
           docker push $IMAGE_NAME
 
-      - name: Update Helm Chart in Nexus
+      - name: Install Helm push plugin
+        run: helm plugin install https://github.com/chartmuseum/helm-push.git
+
+      - name: Package Helm Chart
         run: |
           helm package helm/backend-chart
-          curl -u ${{ secrets.NEXUS_USERNAME }}:${{ secrets.NEXUS_PASSWORD }} --upload-file backend-chart-0.1.0.tgz https://nexus.example.com/repository/helm-charts/
+
+      - name: Push Helm Chart to Nexus
+        run: |
+          helm repo add my-nexus http://209.38.170.117:8081/repository/helm-charts/
+          helm push backend-chart-0.1.0.tgz my-nexus --username=${{ secrets.NEXUS_USERNAME }} --password=${{ secrets.NEXUS_PASSWORD }}
