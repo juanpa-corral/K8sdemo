@@ -66,26 +66,32 @@ jobs:
         run: |
           echo "${{ secrets.NEXUS_PASSWORD }}" | HELM_INSECURE_SKIP_TLS_VERIFY=1 helm registry login http://209.38.170.117:8081 --username=${{ secrets.NEXUS_USERNAME }} --password-stdin
 
-
       # ✅ Subir el Chart a Nexus usando OCI
       - name: Push Helm Chart to Nexus
         run: |
           helm push k8sdemoManifiest/backend-chart-0.1.0.tgz oci://http://209.38.170.117:8081/repository/helm-charts/
-      
+
       # 🔹 Actualizar el index.yaml en el repo `k8sdemoManifiest`
       - name: Update k8sdemoManifiest repo
         run: |
           cd k8sdemoManifiest/backend-chart
-          
+
           # Actualizar versión en `Chart.yaml`
           sed -i 's/version: .*/version: 0.1.0/' Chart.yaml
-          
+
           cd ..
-          
+
           # Agregar cambios y hacer commit
           git add backend-chart-0.1.0.tgz backend-chart/Chart.yaml
-          
+
           git config --global user.email "github-actions@github.com"
           git config --global user.name "github-actions"
           git commit -m "Update Helm Chart version to 0.1.0"
           git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/juanpa-corral/k8sdemoManifiest.git
+
+      # 🔹 Añadiendo pasos de diagnostico.
+      - name: Check Helm Version
+        run: helm version
+
+      - name: Check Nexus Connection
+        run: curl -v http://209.38.170.117:8081/v2/
