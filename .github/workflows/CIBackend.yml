@@ -22,7 +22,7 @@ jobs:
           java-version: '17'
 
       - name: Build backend with Gradle
-        working-directory: backend
+        working-directory: kubernetesK8s
         run: |
           chmod +x ./gradlew
           ./gradlew build
