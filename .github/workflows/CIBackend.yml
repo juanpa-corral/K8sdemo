@@ -59,9 +59,10 @@ jobs:
 
       - name: Log in to Nexus Helm Repository
         run: |
-          helm registry login http://209.38.170.117:8081 \
+          export HELM_OCI_INSECURE=1
+          echo "${{ secrets.NEXUS_PASSWORD }}" | helm registry login http://209.38.170.117:8081 \
             --username=${{ secrets.NEXUS_USERNAME }} \
-            --password=${{ secrets.NEXUS_PASSWORD }}
+            --password-stdin
 
 
       - name: Push Helm Chart to Nexus
