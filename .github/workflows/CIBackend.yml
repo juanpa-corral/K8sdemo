@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "backend/**"  # Se activa cuando hay cambios en el backend
+      - "kubernetesK8s/**"  # Se activa cuando hay cambios en el backend
 
 jobs:
   build-and-push:
