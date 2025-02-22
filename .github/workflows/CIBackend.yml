@@ -59,10 +59,10 @@ jobs:
 
       - name: Log in to Nexus Helm Repository
         run: |
-          helm registry login 209.38.170.117:8081 \
+          helm registry login http://209.38.170.117:8081 \
             --username=${{ secrets.NEXUS_USERNAME }} \
-            --password=${{ secrets.NEXUS_PASSWORD }} \
-            --insecure-skip-tls-verify
+            --password=${{ secrets.NEXUS_PASSWORD }}
+
 
       - name: Push Helm Chart to Nexus
         run: |
