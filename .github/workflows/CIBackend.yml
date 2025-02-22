@@ -43,8 +43,10 @@ jobs:
       - name: Clone Helm Chart Repository
         run: |
           git clone https://github.com/juanpa-corral/k8sdemoManifiest.git
+          cd k8sdemoManifiest
+          git pull origin main  # Asegura que tienes la última versión
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Necesario si el repo es privado
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 🔹 Empaquetar el Chart desde el repositorio clonado
       - name: Package Helm Chart
@@ -52,24 +54,32 @@ jobs:
           cd k8sdemoManifiest/backend-chart
           helm package . --destination ../
           cd ..
+          ls -l  # Verifica si el archivo .tgz realmente está aquí
 
-# ✅ Subir el Chart a Nexus usando ChartMuseum
+      # 🔹 Verificar si el archivo .tgz se generó antes del push
+      - name: Verify Helm Chart before push
+        run: ls -l k8sdemoManifiest/
+
+      # ✅ Subir el Chart a Nexus usando ChartMuseum
       - name: Push Helm Chart to Nexus
         run: |
           helm repo add my-nexus http://209.38.170.117:8081/repository/helm-charts/
-          helm cm-push backend-chart-0.1.0.tgz my-nexus --username=${{ secrets.NEXUS_USERNAME }} --password=${{ secrets.NEXUS_PASSWORD }}
+          helm cm-push k8sdemoManifiest/backend-chart-0.1.0.tgz my-nexus --username=${{ secrets.NEXUS_USERNAME }} --password=${{ secrets.NEXUS_PASSWORD }}
 
-      # 🔹 Actualizar el index.yaml con la nueva versión
+      # 🔹 Actualizar el index.yaml con la nueva versión y subir los cambios
       - name: Update k8sdemoManifiest repo
         run: |
           cd k8sdemoManifiest/backend-chart
           
-          # Actualizar la versión del chart en el `index.yaml`
+          # Actualizar la versión del chart en `Chart.yaml`
           sed -i 's/version: .*/version: 0.1.0/' Chart.yaml
           
-          # Commit y push al repositorio de manifiestos
+          cd ..
+          
+          # Agregar el nuevo archivo .tgz al commit
+          git add backend-chart-0.1.0.tgz backend-chart/Chart.yaml backend-chart/index.yaml
+          
           git config --global user.email "github-actions@github.com"
           git config --global user.name "github-actions"
-          git add .
           git commit -m "Update Helm Chart version to 0.1.0"
           git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/juanpa-corral/k8sdemoManifiest.git
