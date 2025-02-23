@@ -57,18 +57,12 @@ jobs:
       - name: Verify Helm Chart before push
         run: ls -l k8sdemoManifiest/
 
-      # 🚨 Corregido: Eliminado "http://" y el tag ":latest"
+      # ✅ Subir Helm Chart a Nexus con `curl` (sin usar OCI)
       - name: Push Helm Chart to Nexus
         run: |
-          export HELM_REGISTRY_USER="helm-user"
-          export HELM_REGISTRY_PASSWORD="${{ secrets.NEXUS_PASSWORD }}"
-      
-          # 🔹 Iniciar sesión en el registry OCI de Nexus
-          echo "$HELM_REGISTRY_PASSWORD" | helm registry login 209.38.170.117:8081 \
-            --username "$HELM_REGISTRY_USER" --password-stdin --insecure
-      
-          # 🔹 Subir el chart usando OCI
-          helm push backend-chart-0.1.0.tgz oci://209.38.170.117:8081/repository/helm-charts/
+          curl -u "${{ secrets.NEXUS_USER }}:${{ secrets.NEXUS_PASSWORD }}" \
+               --upload-file k8sdemoManifiest/backend-chart-0.1.0.tgz \
+               http://209.38.170.117:8081/repository/helm-charts/
 
       - name: Update Chart Version
         run: |
