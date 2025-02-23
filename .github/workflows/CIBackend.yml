@@ -38,7 +38,7 @@ jobs:
 
       - name: Enable OCI support in Helm
         run: echo "HELM_EXPERIMENTAL_OCI=1" >> $GITHUB_ENV
-
+        
       - name: Clone Helm Chart Repository
         run: |
           git clone https://github.com/juanpa-corral/k8sdemoManifiest.git
@@ -47,6 +47,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install yq
+        run: sudo snap install yq
+        
       - name: Package Helm Chart
         run: |
           cd k8sdemoManifiest/backend-chart
@@ -60,26 +63,19 @@ jobs:
       # 🚨 Corregido: Eliminado "http://" y el tag ":latest"
       - name: Push Helm Chart to Nexus
         run: |
-          export HELM_REGISTRY_USER="${{ secrets.NEXUS_USERNAME }}"
+          export HELM_REGISTRY_USER="helm-user" #use the user created in nexus
           export HELM_REGISTRY_PASSWORD="${{ secrets.NEXUS_PASSWORD }}"
-          
-          echo "$HELM_REGISTRY_PASSWORD" | helm registry login 209.38.170.117:8081 \
+          echo "$HELM_REGISTRY_PASSWORD" | helm registry login http://209.38.170.117:8081 \
             --username "$HELM_REGISTRY_USER" --password-stdin
+          helm push --debug backend-chart-0.1.0.tgz oci://209.38.170.117:8081/repository/helm-charts/
 
-          helm push --debug k8sdemoManifiest/backend-chart-0.1.0.tgz \
-            oci://209.38.170.117:8081/repository/helm-charts
-
-      - name: Update k8sdemoManifiest repo
+      - name: Update Chart Version
         run: |
           cd k8sdemoManifiest/backend-chart
-          
-          sed -i 's/version: .*/version: 0.1.0/' Chart.yaml
-          
+          yq -i '.version = "0.1.0"' Chart.yaml
           cd ..
-          
-          git add backend-chart-0.1.0.tgz backend-chart/Chart.yaml
-          
           git config --global user.email "github-actions@github.com"
           git config --global user.name "github-actions"
+          git add backend-chart/Chart.yaml backend-chart-0.1.0.tgz
           git commit -m "Update Helm Chart version to 0.1.0"
           git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/juanpa-corral/k8sdemoManifiest.git
