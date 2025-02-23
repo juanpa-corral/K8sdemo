@@ -64,7 +64,7 @@ jobs:
           export HELM_REGISTRY_PASSWORD="${{ secrets.NEXUS_PASSWORD }}"
           echo "$HELM_REGISTRY_PASSWORD" | helm registry login http://209.38.170.117:8081 \
             --username "$HELM_REGISTRY_USER" --password-stdin
-          helm push --debug backend-chart-0.1.0.tgz http://209.38.170.117:8081/repository/helm-charts/
+          helm push --debug backend-chart-0.1.0.tgz http://209.38.170.117:8081/repository/helm-charts/ --insecure
 
       - name: Update Chart Version
         run: |
