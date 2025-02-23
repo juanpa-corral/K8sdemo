@@ -35,9 +35,6 @@ jobs:
           IMAGE_NAME=docker.io/${{ secrets.DOCKER_USERNAME }}/backend:latest
           docker build -t $IMAGE_NAME kubernetesK8s
           docker push $IMAGE_NAME
-
-      - name: Enable OCI support in Helm
-        run: echo "HELM_EXPERIMENTAL_OCI=1" >> $GITHUB_ENV
         
       - name: Clone Helm Chart Repository
         run: |
@@ -67,7 +64,7 @@ jobs:
           export HELM_REGISTRY_PASSWORD="${{ secrets.NEXUS_PASSWORD }}"
           echo "$HELM_REGISTRY_PASSWORD" | helm registry login http://209.38.170.117:8081 \
             --username "$HELM_REGISTRY_USER" --password-stdin
-          helm push --debug backend-chart-0.1.0.tgz oci://209.38.170.117:8081/repository/helm-charts/
+          helm push --debug backend-chart-0.1.0.tgz http://209.38.170.117:8081/repository/helm-charts/
 
       - name: Update Chart Version
         run: |
