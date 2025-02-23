@@ -60,7 +60,7 @@ jobs:
       # ✅ Subir Helm Chart a Nexus con `curl` (sin usar OCI)
       - name: Push Helm Chart to Nexus
         run: |
-          curl -u "${{ secrets.NEXUS_USER }}:${{ secrets.NEXUS_PASSWORD }}" \
+          curl -u "helm-user:admin12345678" \
                --upload-file k8sdemoManifiest/backend-chart-0.1.0.tgz \
                http://209.38.170.117:8081/repository/helm-charts/
 
