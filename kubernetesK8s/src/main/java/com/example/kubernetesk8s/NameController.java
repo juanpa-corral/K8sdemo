@@ -11,10 +11,10 @@ public class NameController {
     @Autowired
     private NameService nameService;
 
-    /*@GetMapping
+    @GetMapping
     public List<Name> getNames() {
-        //return nameService.getAllNames();
-    }*/
+        return nameService.getAllNames();
+    }
 
     @PostMapping
     public void addName(@RequestParam String name) {
