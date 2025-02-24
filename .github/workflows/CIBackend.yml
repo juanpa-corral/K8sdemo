@@ -47,17 +47,24 @@ jobs:
       - name: Install yq
         run: sudo snap install yq
             
-      - name: Update Chart Version
+      - name: Update Chart Version and Image Tag in values.yaml
         run: |
           cd k8sdemoManifiest/backend-chart
           NEW_VERSION="0.1.$GITHUB_RUN_NUMBER"
+          
+          # Actualizar Chart.yaml
           yq -i ".version = \"$NEW_VERSION\"" Chart.yaml
+          
+          # Actualizar tag en values.yaml
+          yq -i ".image.tag = \"$NEW_VERSION\"" values.yaml
+          
           cd ..
           git config --global user.email "github-actions@github.com"
           git config --global user.name "github-actions"
-          git add backend-chart/Chart.yaml
-          git commit -m "Update Helm Chart version to $NEW_VERSION" || echo "No changes to commit"
+          git add backend-chart/Chart.yaml backend-chart/values.yaml
+          git commit -m "Update Helm Chart version and image tag to $NEW_VERSION" || echo "No changes to commit"
           git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/juanpa-corral/k8sdemoManifiest.git
+
  
       - name: Package Helm Chart
         run: |
