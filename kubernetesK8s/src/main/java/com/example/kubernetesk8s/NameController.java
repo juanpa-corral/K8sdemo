@@ -20,5 +20,11 @@ public class NameController {
     public void addName(@RequestParam String name) {
         nameService.addName(name);
     }
+
+    // Nuevo endpoint para saludar
+    @GetMapping("/hello")
+    public String sayHello() {
+        return "Hola a todos nuestros clientes: " + nameService.getAllNames().toString();
+    }
 }
 
