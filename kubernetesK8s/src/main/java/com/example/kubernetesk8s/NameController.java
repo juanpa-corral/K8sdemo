@@ -11,10 +11,10 @@ public class NameController {
     @Autowired
     private NameService nameService;
 
-    @GetMapping
+    /*@GetMapping
     public List<Name> getNames() {
-        return nameService.getAllNames();
-    }
+        //return nameService.getAllNames();
+    }*/
 
     @PostMapping
     public void addName(@RequestParam String name) {
@@ -22,7 +22,7 @@ public class NameController {
     }
 
     // Nuevo endpoint para saludar
-    @GetMapping("/hello")
+    @GetMapping
     public String sayHello() {
         return "Hola a todos nuestros clientes: " + nameService.getAllNames().toString();
     }
