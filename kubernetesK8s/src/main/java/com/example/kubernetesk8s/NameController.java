@@ -22,9 +22,10 @@ public class NameController {
     }
 
     // Nuevo endpoint para saludar
-    @GetMapping
+    @GetMapping("/hello")
     public String sayHello() {
         return "Hola a todos nuestros clientes: " + nameService.getAllNames().toString();
     }
+
 }
 
