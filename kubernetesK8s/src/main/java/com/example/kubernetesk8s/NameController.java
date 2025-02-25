@@ -21,11 +21,11 @@ public class NameController {
         nameService.addName(name);
     }
 
-    /*/// Nuevo endpoint para saludar
+    /// Nuevo endpoint para saludar
     @GetMapping("/hello")
     public String sayHello() {
         return "Hola a todos nuestros clientes: " + nameService.getAllNames().toString();
-    }*/
+    }
 
 }
 
