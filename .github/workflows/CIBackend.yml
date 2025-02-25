@@ -50,7 +50,7 @@ jobs:
       - name: Update Chart Version and Image Tag in values.yaml
         run: |
           cd k8sdemoManifiest/backend-chart
-          NEW_VERSION="0.1.$GITHUB_RUN_NUMBER"
+          NEW_VERSION="0.2.$GITHUB_RUN_NUMBER"
           
           # Actualizar Chart.yaml
           yq -i ".version = \"$NEW_VERSION\"" Chart.yaml
