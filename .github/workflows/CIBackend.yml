@@ -32,7 +32,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          IMAGE_NAME=docker.io/${{ secrets.DOCKER_USERNAME }}/backend:0.1.${{ github.run_number }}
+          IMAGE_NAME=docker.io/${{ secrets.DOCKER_USERNAME }}/backend:0.2.${{ github.run_number }}
           docker build -t $IMAGE_NAME kubernetesK8s
           docker push $IMAGE_NAME
         
